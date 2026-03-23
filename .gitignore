@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.env
+venv/
+.venv/
+
+# Data files — large CSVs and models not tracked in git
+data/raw/
+data/models/
+data/processed/ncaaw_players_multiyear.csv
+data/processed/xgb_training_set.csv
+
+# Keep processed outputs that the app needs
+!data/processed/ncaaw_players_features.csv
+!data/processed/player_fit_scores.csv
+!data/processed/wnba_top5_needs.csv
+
+# Node / webapp
+webapp/node_modules/
+webapp/dist/
+
+# Misc
+.DS_Store
+*.log

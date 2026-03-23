@@ -1,0 +1,234 @@
+{
+  "Atlanta Dream": {
+    "archetypeNeeds": {
+      "Primary Creator": 10.0,
+      "Balanced Contributor": 8.5,
+      "Interior Defender": 5.5,
+      "Support Player": 1.0
+    },
+    "topStatNeeds": [
+      "Shooting Efficiency",
+      "True Shooting",
+      "2-Pt Creation",
+      "Rim Protection"
+    ],
+    "rawDeficits": {
+      "FG.": 0.2146,
+      "TS.": 0.1536,
+      "percent_2FGM": 0.1435,
+      "opp_percent_2FGM": 0.1435,
+      "PTS_per_100": 0.137
+    }
+  },
+  "Chicago Sky": {
+    "archetypeNeeds": {
+      "Primary Creator": 10.0,
+      "Balanced Contributor": 9.1,
+      "Interior Defender": 6.4,
+      "Support Player": 1.0
+    },
+    "topStatNeeds": [
+      "True Shooting",
+      "2-Pt Creation",
+      "Rim Protection",
+      "Scoring"
+    ],
+    "rawDeficits": {
+      "TS.": 0.1799,
+      "percent_2FGM": 0.1401,
+      "opp_percent_2FGM": 0.1401,
+      "PTS_per_100": 0.1339,
+      "FG.": 0.1144
+    }
+  },
+  "Connecticut Sun": {
+    "archetypeNeeds": {
+      "Primary Creator": 3.9,
+      "Balanced Contributor": 5.9,
+      "Interior Defender": 10.0,
+      "Support Player": 1.4
+    },
+    "topStatNeeds": [
+      "True Shooting",
+      "Defensive Rebounding",
+      "2-Pt Creation",
+      "Rim Protection"
+    ],
+    "rawDeficits": {
+      "TS.": 0.0135,
+      "DRB_per_100": 0.0111,
+      "percent_2FGM": 0.0095,
+      "opp_percent_2FGM": 0.0095
+    }
+  },
+  "Dallas Wings": {
+    "archetypeNeeds": {
+      "Primary Creator": 1.0,
+      "Balanced Contributor": 1.0,
+      "Interior Defender": 10.0,
+      "Support Player": 4.8
+    },
+    "topStatNeeds": [
+      "Perimeter Defense",
+      "Interior Defense",
+      "Defensive Rebounding",
+      "Disruption"
+    ],
+    "rawDeficits": {
+      "opp_FG%_per_game": 0.2141,
+      "Opp_eFG": 0.1756,
+      "DRB_per_100": 0.1396,
+      "opp_AST_per_100": 0.1131,
+      "opp_3FG%_per_game": 0.1029
+    }
+  },
+  "Indiana Fever": {
+    "archetypeNeeds": {
+      "Primary Creator": 1.0,
+      "Balanced Contributor": 4.6,
+      "Interior Defender": 6.4,
+      "Support Player": 10.0
+    },
+    "topStatNeeds": [
+      "3-Pt Defense",
+      "Interior Defense",
+      "Disruption",
+      "Playmaking"
+    ],
+    "rawDeficits": {
+      "opp_3FG%_per_game": 0.088,
+      "Opp_eFG": 0.0531,
+      "opp_AST_per_100": 0.0353,
+      "AST_per_100": 0.0229,
+      "opp_FG%_per_game": 0.0182
+    }
+  },
+  "Las Vegas Aces": {
+    "archetypeNeeds": {
+      "Primary Creator": 1.0,
+      "Balanced Contributor": 8.9,
+      "Interior Defender": 5.6,
+      "Support Player": 10.0
+    },
+    "topStatNeeds": [
+      "3-Pt Defense",
+      "Total Rebounding",
+      "Playmaking"
+    ],
+    "rawDeficits": {
+      "opp_3FG%_per_game": 0.0471,
+      "TRB_per_100": 0.029,
+      "AST_per_100": 0.0183
+    }
+  },
+  "Los Angeles Sparks": {
+    "archetypeNeeds": {
+      "Primary Creator": 9.6,
+      "Balanced Contributor": 7.0,
+      "Interior Defender": 10.0,
+      "Support Player": 4.0
+    },
+    "topStatNeeds": [
+      "Perimeter Defense",
+      "Scoring",
+      "Interior Defense",
+      "Shooting Efficiency"
+    ],
+    "rawDeficits": {
+      "opp_FG%_per_game": 0.1507,
+      "PTS_per_100": 0.1492,
+      "Opp_eFG": 0.1165,
+      "FG.": 0.1073,
+      "opp_3FG%_per_game": 0.0843
+    }
+  },
+  "Minnesota Lynx": {
+    "archetypeNeeds": {
+      "Primary Creator": 1.0,
+      "Balanced Contributor": 3.1,
+      "Interior Defender": 10.0,
+      "Support Player": 1.0
+    },
+    "topStatNeeds": [
+      "2-Pt Creation",
+      "Rim Protection"
+    ],
+    "rawDeficits": {
+      "percent_2FGM": 0.006,
+      "opp_percent_2FGM": 0.006
+    }
+  },
+  "New York Liberty": {
+    "archetypeNeeds": {
+      "Primary Creator": 1.0,
+      "Balanced Contributor": 1.0,
+      "Interior Defender": 1.0,
+      "Support Player": 1.0
+    },
+    "topStatNeeds": [],
+    "rawDeficits": {}
+  },
+  "Phoenix Mercury": {
+    "archetypeNeeds": {
+      "Primary Creator": 1.0,
+      "Balanced Contributor": 3.6,
+      "Interior Defender": 10.0,
+      "Support Player": 8.5
+    },
+    "topStatNeeds": [
+      "Disruption",
+      "Total Rebounding",
+      "Playmaking",
+      "Defensive Rebounding"
+    ],
+    "rawDeficits": {
+      "opp_AST_per_100": 0.0872,
+      "TRB_per_100": 0.0751,
+      "AST_per_100": 0.0321,
+      "DRB_per_100": 0.0244,
+      "opp_3FG%_per_game": 0.0174
+    }
+  },
+  "Seattle Storm": {
+    "archetypeNeeds": {
+      "Primary Creator": 10.0,
+      "Balanced Contributor": 9.9,
+      "Interior Defender": 5.3,
+      "Support Player": 3.5
+    },
+    "topStatNeeds": [
+      "True Shooting",
+      "Defensive Rebounding",
+      "Shooting Efficiency",
+      "Playmaking"
+    ],
+    "rawDeficits": {
+      "TS.": 0.0485,
+      "DRB_per_100": 0.0288,
+      "FG.": 0.0215,
+      "AST_per_100": 0.0092,
+      "TRB_per_100": 0.0044
+    }
+  },
+  "Washington Mystics": {
+    "archetypeNeeds": {
+      "Primary Creator": 4.8,
+      "Balanced Contributor": 4.7,
+      "Interior Defender": 10.0,
+      "Support Player": 1.1
+    },
+    "topStatNeeds": [
+      "Scoring",
+      "Total Rebounding",
+      "Defensive Rebounding",
+      "2-Pt Creation"
+    ],
+    "rawDeficits": {
+      "PTS_per_100": 0.1155,
+      "TRB_per_100": 0.1089,
+      "DRB_per_100": 0.0908,
+      "percent_2FGM": 0.0438,
+      "opp_percent_2FGM": 0.0438
+    }
+  }
+}

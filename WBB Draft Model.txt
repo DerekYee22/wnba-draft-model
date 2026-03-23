@@ -1,0 +1,354 @@
+﻿Eventually figure out how much weight the archetype actually affects team decision: 
+picking the next best player or next best archetype needed?
+December 29th: 
+
+
+Evan motivational speech, thank you!
+
+
+Team 1: Vedanth and Derek
+Model to provide each team in WNBA with their top 3 “archetype” needs 
+
+
+
+
+Team 2: Evan & Jenna
+Group players into archetypes 
+Rank players based on how good they are and archetype
+
+
+Clusters:
+https://drive.google.com/file/d/1FWLyIh4dFMGEtTavkQK_bMICzeguy8oC/view?usp=sharing
+cluster
+	usg_pct
+	ast_pct
+	fg3a_per_g
+	fg3_pct
+	fta_per_g
+	ts_pct
+	tov_per_g
+	treb_pct
+	blk_per_g
+	stl_per_g
+	0
+	0.166
+	0.085
+	0.56
+	0.158
+	0.519
+	0.35
+	0.606
+	7.527
+	0.116
+	0.259
+	1
+	0.181
+	0.105
+	1.465
+	0.319
+	0.808
+	0.513
+	0.953
+	9.922
+	0.161
+	0.474
+	2
+	0.213
+	0.16
+	3.536
+	0.312
+	2.612
+	0.498
+	2.334
+	8.507
+	0.249
+	1.318
+	3
+	0.201
+	0.138
+	0.824
+	0.188
+	2.409
+	0.494
+	1.848
+	10.01
+	0.941
+	0.877
+	0: Support Players
+1: Balanced contributors
+2: Primary Creators
+3: Interior Defenders
+
+
+Players with Archetypes + Rank
+
+
+Players with Archetypes
+  
+
+0: High-Usage Scorer
+1: Primary Playmaker
+2: 3-and-D Wing
+3: Defensive Big
+
+
+
+
+
+
+
+
+https://colab.research.google.com/drive/1DzRd8GbB2M3dl9NMQbgvqZ1oLIVxxwHw#scrollTo=6EYfpy8p2nY0
+
+
+ 
+Conferences:
+https://www.sloansportsconference.com/
+
+
+https://sportsandsociety.osu.edu/events/6th-annual-ohio-state-sports-analytics-conference
+
+
+https://forms.microsoft.com/Pages/ResponsePage.aspx?id=fZ3ViMuuskGQxVVZXeAlNlBLjccNNcJGkzrSJ0iZO_1UOTNSMVE4V0ZINTFPSkFFRkJTU0tXTlZENS4u
+
+
+https://statds.org/events/csas2026/index.html
+
+
+
+
+
+
+Derek:
+Final columns with descriptions
+Final csv
+Derek Correlation analysis
+  
+
+Jenna:
+total stats
+Top 20 features most correlated with Win%:
+
+
+NRtg: +0.9512
+MOV: +0.9510
+SRS: +0.9472
+SOS: -0.6368
+ORtg: +0.6279
+PTS.y: +0.6279
+FG%.x.x: +0.5809
+TFG%: +0.5805
+FG%.y: +0.5805
+FG%: +0.5805
+FG%.y.y: -0.5725
+FG%.x: -0.5725
+OFG%: -0.5725
+PTS.x: -0.5671
+DRtg: -0.5671
+TS%: +0.5627
+FG.y: +0.5531
+eFG%: +0.5240
+eFG%_1: -0.4952
+Rk.y: -0.4887
+
+
+Evan:
+SOS                         -0.647060
+PTS.y                        0.623228
+ORtg                         0.623228
+Rk.x                        -0.595942
+FG..y                        0.580880
+FG..x                        0.578828
+FG.                          0.578828
+DRtg                        -0.564005
+TS.                          0.562698
+FG.y                         0.549687
+eFG.                         0.524432
+eFG._1                      -0.493427
+percent_2FGM                 0.475121
+X2P.                         0.469565
+AST.y                        0.445955
+DRB.y                        0.432753
+X3P.                         0.407293
+fg_percent_by_distance_3P    0.396597
+Age                          0.387080
+
+
+Code
+
+
+
+
+SKLearn - Correlation with Wins
+NBA example
+Example csv
+Merge(__) function in R
+
+
+
+
+League Standings (Starts 2016)
+Conference Standings - Henok 
+Advanced stats 
+
+
+Playoff Series (Has dropdown)
+Per Game Stats - Jenna
+* Per Game Stats
+* Playoffs Stats
+* List of Champions
+
+
+Per 100 Poss (team & opponent) - Person 2 - Vedanth -  i think evan did total so I did per 100 instead
+*  Opp Team Stats
+* Team Stats
+
+
+Total Stats (team & opponent) - Person 3 - Evan
+* Total Stats
+* Opponent Total Stats
+
+
+Shooting Stats (team & opponent) - Person 4 - Derek
+* opp shooting stats 
+* shooting stats 
+
+
+
+
+
+
+Next week: Choose with data points are necessary
+
+
+Research data visualization tools. 
+
+
+Week 1 Goal: Scrape WNBA team data
+
+
+
+
+General Team/Opponent Statistics (Change team and year):
+https://www.basketball-reference.com/wnba/teams/(TEAM ABR)/(YEAR).html
+
+
+
+
+2025, 2024, 2023, 2022, 2021, 2020, 2019, 2018, 2017, 2016, 2015, 2014, 2013, 2012, 2011, 2010, 2009, 2008, 2007, 2006, 2005, 2004, 2003, 2002, 2001, 2000, 1999, 1998, 1997
+
+
+Evan
+* https://drive.google.com/file/d/18cq9YMDoTxzN-NHPhd4pCa6NCpmw60qe/view?usp=sharing
+Vedanth
+* https://drive.google.com/file/d/17BuNZ52PzY3BRuNgtPT5DLtvdV3WX8KZ/view?usp=sharing
+Jenna
+https://drive.google.com/file/d/1NK8sEMh2xGUcPNa4hFQ5Vw-ZHJH02SS0/view?usp=drive_link
+
+
+Derek
+* https://drive.google.com/file/d/193xQCUfP0elK5SApcTRYo3BpSf9Ke9mR/view?usp=sharing 
+Henok - https://utexas-my.sharepoint.com/:x:/g/personal/hab2639_eid_utexas_edu/EfVA7lQ0IjpGn3povhIKpkgBNNEqE0QBC73_KKbjKJDSAQ?e=YhVDvX
+
+
+R Tools:
+* Rvest
+   * https://rvest.tidyverse.org/
+
+
+* RSelenium
+Possible Datasets to look at 
+* https://herhoopstats.com/
+* https://www.sports-reference.com/cbb/
+* https://stats.ncaa.org/rankings/change_sport_year_div
+* https://www.espn.com/womens-college-basketball/
+
+
+
+
+
+
+Player Features:
+Player Measurements
+* Height
+* Weight
+* Wingspan
+* Position
+* Combine Data?
+Basic Stats 
+* Pts, Reb, Ast, STL, BLK
+Shooting
+* FGM, FGA, FG%
+* FTM, FTA, FT%
+* 3FGM, 3FGA, 3FG%
+* Shot distribution
+* eFG%, TS%
+* FT Rate (FTA/FGA)
+Rebounding
+* OREB, DREB
+Passing
+* Assist to turnover ratio
+* TO%
+* AST%
+Defense
+* Steal rate
+* Block rate
+* Defensive rating
+* Opponent FG% allowed at rim
+* Deflections
+* Charges drawn
+* Defensive Win shares
+Team Role
+* Usage %
+* MPG
+* Team Pace
+* Games started
+
+
+Advanced Player Stats
+* BPM
+* PER
+* WS/40 or WS
+* RAPTOR
+* Offensive & Defensive LEBRON
+
+
+Other
+* Strength of Schedule/Conference
+* Player comments
+* Coaches comments/evaluations
+* Length in NCAA (# season)
+
+
+WNBA Team Statistics
+
+
+Shooting
+Defense
+Rebounding
+What draft pick they have
+* Probability model
+* Lottery simulation
+Cap Space
+
+
+
+
+
+
+
+
+
+
+
+
+Steps:
+1. Historically, identify which WNBA stats correlate with successful team records.
+2. After identifying the relationship between stats and team success, scrape those stats from the most recent season. Determine which teams lack in which area
+3. Scrape NCAA player data
+4. Rank Players with fit rankings
+5. Match NCAA players to teams
+
+
+Potential End Goal:
+* When the actual draft comes around, our model displays the top 5 fits for each WNBA team that is currently drafting, and as teams draft players, the fits will shuffle according to certain teams’ shortcomings. As the draft progresses, track accuracy based on our predictions. If a player from our top 5 “fits” for a team is taken, then we win.
