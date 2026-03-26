@@ -52,7 +52,7 @@ RATE_STATS = [
 ]
 
 # These context columns are taken from the most recent season row
-CONTEXT_COLS = ["conference", "team", "team_id", "adj_opp_win_pct", "opp_win_pct"]
+CONTEXT_COLS = ["conference", "team", "team_id", "opp_win_pct"]
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -170,8 +170,12 @@ def load_raw_years(years) -> pd.DataFrame:
 
 def dedup_transfers(df: pd.DataFrame) -> pd.DataFrame:
     df["_mpg"] = mpg_col(df)
-    # Use player_id when available, fall back to player name
-    id_col = "player_id" if "player_id" in df.columns else "player"
+    # Use player_id only when the column exists AND has non-null values
+    id_col = (
+        "player_id"
+        if "player_id" in df.columns and df["player_id"].notna().any()
+        else "player"
+    )
     if "season_year" in df.columns:
         df = (
             df.sort_values("_mpg", ascending=False, na_position="last")
@@ -203,7 +207,11 @@ def aggregate_multi_year(long_df: pd.DataFrame) -> pd.DataFrame:
     # Only keep rows meeting the minimum minutes threshold
     long_df = long_df[long_df["_mp"] >= MIN_MP_SEASON].copy()
 
-    id_col = "player_id" if "player_id" in long_df.columns else "player"
+    id_col = (
+        "player_id"
+        if "player_id" in long_df.columns and long_df["player_id"].notna().any()
+        else "player"
+    )
     rows = []
     for player_id, grp in long_df.groupby(id_col, sort=False):
         if len(grp) == 0:
@@ -220,14 +228,22 @@ def aggregate_multi_year(long_df: pd.DataFrame) -> pd.DataFrame:
         # Resolve the canonical player name (column may be "player" or "name")
         player_name = most_recent.get("player") or most_recent.get("name") or str(player_id)
 
+        # games_played in the most recent season (from 'g' or 'games_played' column)
+        gp_latest = most_recent.get("games_played") or most_recent.get("g")
+        try:
+            gp_latest = int(float(gp_latest))
+        except (TypeError, ValueError):
+            gp_latest = None
+
         row = {
-            "player_id":       player_id,
-            "player":          player_name,
-            "pos":             most_recent.get("pos", ""),
-            "n_seasons":       len(grp),
+            "player_id":        player_id,
+            "player":           player_name,
+            "pos":              most_recent.get("pos", ""),
+            "n_seasons":        len(grp),
             "most_recent_year": int(grp["season_year"].max()),
-            "total_mp":        total_mp,
-            "mpg_latest":      float(most_recent.get("_mpg") or np.nan),
+            "total_mp":         total_mp,
+            "mpg_latest":       float(most_recent.get("_mpg") or np.nan),
+            "games_played_latest": gp_latest,
         }
 
         # Weighted average for each rate stat
@@ -243,6 +259,14 @@ def aggregate_multi_year(long_df: pd.DataFrame) -> pd.DataFrame:
                 row[col] = np.nan
             else:
                 row[col] = float(np.average(vals[mask], weights=weights[mask]))
+
+        # Latest-season values for display in the webapp (not used by the model)
+        for col in RATE_STATS:
+            latest_val = most_recent.get(col)
+            try:
+                row[f"{col}_latest"] = float(latest_val) if latest_val is not None else np.nan
+            except (TypeError, ValueError):
+                row[f"{col}_latest"] = np.nan
 
         # Season trend (slope of bpm and pts_per_g over time — reward upward trajectory)
         for trend_stat in ("bpm", "pts_per_g", "ws_per_40"):
@@ -347,6 +371,18 @@ def main():
     print("Loading raw player data...")
     long_df = load_raw_years(YEARS)
 
+    # Merge opponent strength onto each player-season row
+    opp_path = PROC_DIR / "team_opp_strength.csv"
+    if opp_path.exists():
+        print("Merging opponent strength...")
+        opp_df = pd.read_csv(opp_path)[["season_year", "team_id", "opp_win_pct"]]
+        long_df = long_df.merge(opp_df, on=["season_year", "team_id"], how="left")
+        filled = long_df["opp_win_pct"].notna().sum()
+        print(f"  opp_win_pct filled for {filled}/{len(long_df)} player-season rows")
+    else:
+        print("  [INFO] team_opp_strength.csv not found — run 03_opp_strength.py first")
+        long_df["opp_win_pct"] = float("nan")
+
     # Save long-format (all seasons)
     long_out = PROC_DIR / "ncaaw_players_multiyear.csv"
     long_df.to_csv(long_out, index=False)
@@ -364,17 +400,14 @@ def main():
     print("Merging measurables...")
     feat_df = merge_measurables(feat_df)
 
-    # Merge archetype labels
-    print("Merging archetype labels...")
-    feat_df = merge_archetype_labels(feat_df)
-
     # Derived features
     feat_df = add_derived_features(feat_df)
 
     feat_out = PROC_DIR / "ncaaw_players_features.csv"
     feat_df.to_csv(feat_out, index=False)
     print(f"\nFeature CSV saved: {feat_out.name} ({len(feat_df)} players, {feat_df.shape[1]} columns)")
-    print(feat_df[["player", "n_seasons", "pts_per_g", "bpm", "archetype"]].head(10).to_string(index=False))
+    print(f"  Run 05_archetype_clusters.py next to assign archetype labels.")
+    print(feat_df[["player", "n_seasons", "pts_per_g", "bpm"]].head(10).to_string(index=False))
 
 
 if __name__ == "__main__":

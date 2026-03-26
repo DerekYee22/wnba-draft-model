@@ -9,12 +9,14 @@ Usage:
     python run_pipeline.py --all      # everything including measurables scrape
 
 Steps:
-    [scrape]  01_scrape_multi_year.py   — scrape NCAA stats (slow, skip if data exists)
-    [scrape]  02_scrape_measurables.py  — scrape height/weight (slow, optional)
-              03_build_features.py      — build feature matrix
-              04_xgboost_model.py       — train model + score prospects
-              05_fit_scores.py          — compute team fit scores
-              prepare_data.py           — generate webapp/public/players.json
+    [scrape]  01_scrape_multi_year.py    — scrape NCAA stats (slow, skip if data exists)
+    [all]     02_scrape_measurables.py   — scrape height/weight (slow, optional)
+    [scrape]  03_opp_strength.py         — compute opponent strength metrics
+              04_build_features.py       — build feature matrix
+              05_archetype_clusters.py   — cluster players into archetypes
+              06_xgboost_model.py        — train model + score prospects
+              07_fit_scores.py           — compute team fit scores
+              prepare_data.py            — generate webapp/public/players.json
 """
 
 import sys
@@ -31,10 +33,12 @@ STEPS = [
     # (script_path, description, requires_scrape_flag)
     (PIPELINE_DIR / "01_scrape_multi_year.py",  "Scraping NCAA player data (slow)",       "scrape"),
     (PIPELINE_DIR / "02_scrape_measurables.py", "Scraping player measurables (slow)",     "all"),
-    (PIPELINE_DIR / "03_build_features.py",     "Building feature matrix",                None),
-    (PIPELINE_DIR / "04_xgboost_model.py",      "Training model + scoring prospects",     None),
-    (PIPELINE_DIR / "05_fit_scores.py",         "Computing team fit scores",              None),
-    (ROOT         / "prepare_data.py",           "Generating webapp/public/players.json",  None),
+    (PIPELINE_DIR / "03_opp_strength.py",        "Computing opponent strength metrics",    "scrape"),
+    (PIPELINE_DIR / "04_build_features.py",      "Building feature matrix",               None),
+    (PIPELINE_DIR / "05_archetype_clusters.py",  "Clustering players into archetypes",    None),
+    (PIPELINE_DIR / "06_xgboost_model.py",       "Training model + scoring prospects",    None),
+    (PIPELINE_DIR / "07_fit_scores.py",          "Computing team fit scores",             None),
+    (ROOT         / "prepare_data.py",            "Generating webapp/public/players.json", None),
 ]
 
 
@@ -66,7 +70,7 @@ def main():
     parser.add_argument("--all", action="store_true",
                         help="Run everything including measurables scrape")
     parser.add_argument("--from-step", type=int, default=1, metavar="N",
-                        help="Start from step N (1=scrape, 3=features, 4=model, 5=fit, 6=webapp)")
+                        help="Start from step N (1=scrape, 4=features, 5=archetypes, 6=model, 7=fit, 8=webapp)")
     args = parser.parse_args()
 
     if args.all:

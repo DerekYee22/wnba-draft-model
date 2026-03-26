@@ -47,11 +47,12 @@ from pathlib import Path
 from difflib import SequenceMatcher
 from bs4 import BeautifulSoup, Comment
 
+import requests
+
 try:
     import cloudscraper
     _HAS_CLOUDSCRAPER = True
 except ImportError:
-    import requests
     _HAS_CLOUDSCRAPER = False
     print("[WARN] cloudscraper not installed — falling back to requests. "
           "Run: pip install cloudscraper")
@@ -91,7 +92,7 @@ FEATURES = [
     # Advanced
     "bpm", "per", "ws_per_40",
     # Context
-    "adj_opp_win_pct", "mpg_latest",
+    "opp_win_pct", "mpg_latest",
 ]
 
 MAX_RETRIES    = 3
@@ -120,6 +121,7 @@ def fetch_html(url: str, session) -> str:
         try:
             r = session.get(url, timeout=30)
             r.raise_for_status()
+            r.encoding = "utf-8"
             return r.text
         except Exception as e:
             if attempt == MAX_RETRIES:
@@ -155,15 +157,33 @@ def table_to_df(table) -> pd.DataFrame:
         if "thead" in cls or "partial_table" in cls:
             continue
         row = {}
-        th = tr.find("th")
-        if th:
-            row["_th_text"] = th.get_text(strip=True)
-            a = th.find("a", href=True)
-            if a:
-                row["player_href"] = a["href"].strip()
+
+        # New sports-reference format: player name + link in <td data-stat="name_display">
+        # Fall back to <th> for older table layouts.
+        player_found = False
+        for stat in ("name_display", "player"):
+            td_name = tr.find("td", attrs={"data-stat": stat})
+            if td_name:
+                name = td_name.get_text(strip=True)
+                if name:
+                    row["player"] = name
+                    a = td_name.find("a", href=True)
+                    if a:
+                        row["player_href"] = a["href"].strip()
+                    player_found = True
+                    break
+
+        if not player_found:
+            th = tr.find("th")
+            if th:
+                row["_th_text"] = th.get_text(strip=True)
+                a = th.find("a", href=True)
+                if a:
+                    row["player_href"] = a["href"].strip()
+
         for td in tr.find_all("td"):
             ds = td.get("data-stat")
-            if ds:
+            if ds and ds not in ("name_display", "player"):
                 row[ds] = td.get_text(strip=True)
         if row:
             rows.append(row)
@@ -303,19 +323,22 @@ def scrape_wnba_player_career(player_href: str, session: requests.Session) -> di
     # Try to find the career totals row in per-game or advanced tables
     career_stats = {}
 
-    # Per-game table (id varies: wnba_per_game, per_game_wnba, etc.)
+    # Per-game table (regular season = index 0)
     per_table = None
-    for tid in ["wnba_per_game", "per_game", "stats"]:
+    for tid in ["per_game0", "per_game"]:
         per_table = find_table(soups, tid)
         if per_table:
             break
 
-    # Advanced table
+    # Advanced table (regular season = index 0)
     adv_table = None
-    for tid in ["wnba_advanced", "advanced"]:
+    for tid in ["advanced0", "advanced"]:
         adv_table = find_table(soups, tid)
         if adv_table:
             break
+
+    if not per_table and not adv_table:
+        print(f"    [WARN] No stats tables found for {url}", flush=True)
 
     def get_career_row(table):
         if table is None:
@@ -375,8 +398,8 @@ def scrape_wnba_player_career(player_href: str, session: requests.Session) -> di
     career_stats["wnba_seasons"] = n_seasons
 
     # Advanced stats from career row
-    career_stats["wnba_ws40"]   = _float(adv_row.get("ws_per_40") or adv_row.get("ws/40"))
-    career_stats["wnba_bpm"]    = _float(adv_row.get("bpm"))
+    career_stats["wnba_ws40"]   = _float(adv_row.get("ws_per_48"))
+    career_stats["wnba_bpm"]    = _float(adv_row.get("bpm"))  # not available on WNBA pages, will be NaN
     career_stats["wnba_per"]    = _float(per_row.get("per") or adv_row.get("per"))
     career_stats["wnba_ts_pct"] = _float(adv_row.get("ts_pct") or per_row.get("ts_pct"))
     career_stats["wnba_ws"]     = _float(adv_row.get("ws"))
@@ -417,15 +440,19 @@ def load_or_scrape_wnba_stats(draft_df: pd.DataFrame,
 def _scrape_player_stats_list(draft_df: pd.DataFrame,
                                session: requests.Session) -> list:
     rows = []
-    for _, row in draft_df.iterrows():
+    total = len(draft_df)
+    for i, (_, row) in enumerate(draft_df.iterrows(), 1):
         href = str(row.get("player_href", ""))
         pid  = str(row.get("wnba_player_id", ""))
+        name = row.get("player", "unknown")
         if not href or len(pid) < 3:
-            rows.append({"wnba_player_id": pid, "player": row.get("player", "")})
+            print(f"  [{i}/{total}] Skipping {name} (no player link)")
+            rows.append({"wnba_player_id": pid, "player": name})
             continue
+        print(f"  [{i}/{total}] Scraping {name} ...", flush=True)
         stats = scrape_wnba_player_career(href, session)
         stats["wnba_player_id"] = pid
-        stats["player"]         = row.get("player", "")
+        stats["player"]         = name
         rows.append(stats)
         time.sleep(random.uniform(*SLEEP_REQUESTS))
     return rows
@@ -447,9 +474,11 @@ def build_wnba_target(df: pd.DataFrame) -> pd.Series:
     The final score is z-scored across all training picks and then normalised
     to [0, 100] for display.
     """
-    games  = pd.to_numeric(df.get("wnba_games",   0), errors="coerce").fillna(0)
-    ws40   = pd.to_numeric(df.get("wnba_ws40",    np.nan), errors="coerce")
-    bpm    = pd.to_numeric(df.get("wnba_bpm",     np.nan), errors="coerce")
+    _zero = pd.Series(0, index=df.index, dtype=float)
+    _nan  = pd.Series(np.nan, index=df.index, dtype=float)
+    games  = pd.to_numeric(df["wnba_games"]  if "wnba_games" in df.columns else _zero,  errors="coerce").fillna(0)
+    ws40   = pd.to_numeric(df["wnba_ws40"]   if "wnba_ws40"  in df.columns else _nan,   errors="coerce")
+    bpm    = pd.to_numeric(df["wnba_bpm"]    if "wnba_bpm"   in df.columns else _nan,   errors="coerce")
 
     established = games >= MIN_WNBA_GAMES
 
@@ -648,8 +677,19 @@ def score_prospects(model, feat_cols: list,
     """
     Apply the trained model to 2025 prospects.
     Prospects df uses original column names (no ncaa_ prefix) — we map them here.
-    Returns scores normalised to 0–100.
+
+    After the model scores are computed we apply an explicit opponent-strength
+    adjustment. The training set only has opp_win_pct for 2022-2024 draft picks
+    (3 of 7 years), so the model can't fully learn to differentiate SEC players
+    from mid-major players on its own. The adjustment multiplies each player's
+    raw score by (their_opp_win_pct / median_opp_win_pct)^OPP_ADJ_ALPHA before
+    re-normalising, rewarding tough-conference players and penalising easy ones.
+
+    OPP_ADJ_ALPHA=0.5 is conservative — it shifts rankings meaningfully without
+    completely overriding the model's stat-based signal.
     """
+    OPP_ADJ_ALPHA = 0.5
+
     X_all = pd.DataFrame(index=prospects_df.index)
     for feat_col in feat_cols:
         base_col = feat_col.replace("ncaa_", "")
@@ -659,6 +699,18 @@ def score_prospects(model, feat_cols: list,
             X_all[feat_col] = np.nan
 
     raw_scores = model.predict(X_all[feat_cols].values)
+
+    # Opponent-strength post-hoc adjustment
+    if "opp_win_pct" in prospects_df.columns:
+        opp_wp = pd.to_numeric(prospects_df["opp_win_pct"], errors="coerce")
+        median_wp = opp_wp.median()
+        if median_wp > 0 and opp_wp.notna().sum() > 10:
+            # Ratio clipped to [0.85, 1.15] so no single player is over-penalised
+            ratio = (opp_wp.fillna(median_wp) / median_wp).clip(0.85, 1.15)
+            adj_factor = ratio ** OPP_ADJ_ALPHA
+            raw_scores = raw_scores * adj_factor.values
+            print(f"  Opponent strength adjustment applied "
+                  f"(alpha={OPP_ADJ_ALPHA}, median opp_wp={median_wp:.3f})")
 
     s_min, s_max = raw_scores.min(), raw_scores.max()
     if s_max > s_min:
@@ -694,18 +746,39 @@ def main():
             raise RuntimeError("No draft data scraped. Check network / basketball-reference structure.")
         print(f"  {len(draft_df)} total draft picks across {draft_df['draft_year'].nunique()} years")
 
+        draft_df.to_csv("test.csv")
+        print("csv saved")
+
         # ---- Step 2: WNBA career stats ----
         print("\nStep 2: Loading WNBA career stats...")
         stats_df = load_or_scrape_wnba_stats(draft_df, session)
 
     # ---- Step 3: Build target ----
     print("\nStep 3: Building WNBA success target...")
-    merged = draft_df.merge(stats_df[["wnba_player_id"] + [c for c in stats_df.columns
-                                                             if c.startswith("wnba_") and c != "wnba_player_id"]],
-                             on="wnba_player_id", how="left")
+
+    # Replace empty-string player IDs with NaN so the merge doesn't
+    # produce a cartesian product when all IDs are blank.
+    draft_df["wnba_player_id"]  = draft_df["wnba_player_id"].replace("", np.nan)
+    stats_df["wnba_player_id"]  = stats_df["wnba_player_id"].replace("", np.nan)
+
+    wnba_stat_cols = [c for c in stats_df.columns
+                      if c.startswith("wnba_") and c != "wnba_player_id"]
+
+    if wnba_stat_cols and stats_df["wnba_player_id"].notna().any():
+        merged = draft_df.merge(
+            stats_df[["wnba_player_id"] + wnba_stat_cols],
+            on="wnba_player_id", how="left"
+        )
+    else:
+        # Stats scraping produced no usable data — proceed without WNBA labels.
+        # The model will fall back to the composite NCAA-based target.
+        print("  [WARN] No WNBA career stats available — using NCAA composite as proxy target")
+        merged = draft_df.copy()
+
     merged["wnba_target"] = build_wnba_target(merged)
 
-    established = (pd.to_numeric(merged.get("wnba_games", 0), errors="coerce").fillna(0) >= MIN_WNBA_GAMES)
+    _games_col = merged["wnba_games"] if "wnba_games" in merged.columns else pd.Series(0, index=merged.index)
+    established = pd.to_numeric(_games_col, errors="coerce").fillna(0) >= MIN_WNBA_GAMES
     print(f"  {established.sum()} / {len(merged)} draft picks established in WNBA (>={MIN_WNBA_GAMES} games)")
 
     # ---- Step 4: Match NCAA features ----
@@ -719,6 +792,12 @@ def main():
     train_out = PROC_DIR / "xgb_training_set.csv"
     train_df.to_csv(train_out, index=False)
     print(f"  Training set saved → {train_out.name}")
+
+    if matched < 20:
+        print("\n  [WARN] Too few matched training examples to train the model.")
+        print("  Too few matched training examples — skipping model training.")
+        print("  To fix: ensure WNBA draft scraping succeeds and re-run this step.")
+        return
 
     # ---- Step 5: Train gradient boosting model ----
     print("\nStep 5: Training gradient boosting model...")

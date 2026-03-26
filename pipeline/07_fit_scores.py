@@ -311,7 +311,7 @@ def main():
 
     if not PLAYERS_IN.exists():
         raise FileNotFoundError(
-            f"{PLAYERS_IN} not found. Run pipeline/04_ridge_model.py first."
+            f"{PLAYERS_IN} not found. Run pipeline/06_xgboost_model.py first."
         )
 
     print(f"Loading players from {PLAYERS_IN.name}...")
