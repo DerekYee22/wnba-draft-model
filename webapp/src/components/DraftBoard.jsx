@@ -1,8 +1,14 @@
 import { ARCHETYPE_META } from '../data/teams'
 import { fmt, pct } from '../utils/fitScore'
 
-export default function DraftBoard({ players, drafted, onUndraft, onReset }) {
+export default function DraftBoard({ players, drafted, draftLog = [], teams = [], onUndraft, onReset }) {
   const draftedPlayers = players.filter((p) => drafted.has(p.name + '|' + p.team))
+
+  // Build a lookup from player key → draft log entry (for mock draft team display)
+  const logByPlayerKey = {}
+  draftLog.forEach((entry) => {
+    if (entry) logByPlayerKey[entry.player.name + '|' + entry.player.team] = entry
+  })
 
   return (
     <div>
@@ -37,6 +43,9 @@ export default function DraftBoard({ players, drafted, onUndraft, onReset }) {
               <tr className="border-b border-gray-800 text-xs text-gray-500 uppercase tracking-wide">
                 <th className="text-left px-4 py-3 font-medium">Pick</th>
                 <th className="text-left px-4 py-3 font-medium">Player</th>
+                {draftLog.some(Boolean) && (
+                  <th className="text-left px-4 py-3 font-medium hidden sm:table-cell">Drafted By</th>
+                )}
                 <th className="text-left px-4 py-3 font-medium hidden md:table-cell">Archetype</th>
                 <th className="text-right px-3 py-3 font-medium hidden sm:table-cell">PTS</th>
                 <th className="text-right px-3 py-3 font-medium hidden sm:table-cell">REB</th>
@@ -49,10 +58,13 @@ export default function DraftBoard({ players, drafted, onUndraft, onReset }) {
             <tbody>
               {draftedPlayers.map((player, idx) => {
                 const meta = ARCHETYPE_META[player.archetype] ?? {}
+                const playerKey = player.name + '|' + player.team
+                const logEntry = logByPlayerKey[playerKey]
+                const wnbaTeam = logEntry ? teams.find((t) => t.id === logEntry.teamId) : null
                 return (
-                  <tr key={player.name + '|' + player.team} className="border-b border-gray-800/50 hover:bg-gray-800/30 transition-colors">
+                  <tr key={playerKey} className="border-b border-gray-800/50 hover:bg-gray-800/30 transition-colors">
                     <td className="px-4 py-3 text-gray-500 font-mono text-sm font-bold">
-                      #{idx + 1}
+                      #{logEntry ? logEntry.pick : idx + 1}
                     </td>
                     <td className="px-4 py-3">
                       <div className="font-semibold text-white">{player.name}</div>
@@ -60,6 +72,23 @@ export default function DraftBoard({ players, drafted, onUndraft, onReset }) {
                         {player.pos} · {player.team}
                       </div>
                     </td>
+                    {draftLog.some(Boolean) && (
+                      <td className="px-4 py-3 hidden sm:table-cell">
+                        {wnbaTeam ? (
+                          <div className="flex items-center gap-2">
+                            <div
+                              className="w-6 h-6 rounded flex items-center justify-center text-white text-xs font-bold"
+                              style={{ background: wnbaTeam.primary }}
+                            >
+                              {wnbaTeam.abbrev.slice(0, 3)}
+                            </div>
+                            <span className="text-xs text-gray-400">{wnbaTeam.name}</span>
+                          </div>
+                        ) : (
+                          <span className="text-gray-600 text-xs">—</span>
+                        )}
+                      </td>
+                    )}
                     <td className="px-4 py-3 hidden md:table-cell">
                       <span className={`inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full border ${meta.bg} ${meta.border} ${meta.text}`}>
                         {meta.icon} {player.archetype}

@@ -24,7 +24,7 @@ from urllib.parse import urljoin, urlparse
 # ---------------------------------------------------------------------------
 # CONFIG
 # ---------------------------------------------------------------------------
-YEARS = [2022, 2023, 2024, 2025]
+YEARS = [2022, 2023, 2024, 2025, 2026]
 OUT_DIR = Path(__file__).parent.parent / "data" / "raw"
 BASE = "https://www.sports-reference.com"
 
@@ -34,6 +34,7 @@ CONFERENCES = [
     ("Missouri Valley Conference", "mvc"),
     ("Atlantic Coast Conference", "acc"),
     ("West Coast Conference", "wcc"),
+    ("Pac-12 Conference", "pac-12"),          # disbanded after 2023-24; needed for historical data
     ("Atlantic 10 Conference", "atlantic-10"),
     ("Big 12 Conference", "big-12"),
     ("Big East Conference", "big-east"),
@@ -79,9 +80,12 @@ TEAM_HREF_PATTERNS = [
     re.compile(r"^/cbb/schools/[^/]+/women\.html$"),
 ]
 
-MAX_RETRIES = 3
-SLEEP_TEAMS = (1.2, 2.5)
-SLEEP_CONF  = 1.5
+MAX_RETRIES = 5
+SLEEP_TEAMS = (4.0, 7.0)
+SLEEP_CONF  = 4.0
+
+DRAFT_YEAR           = max(YEARS)
+FIRST_SEASONS_CACHE  = OUT_DIR / "player_first_seasons.csv"
 
 # ---------------------------------------------------------------------------
 # HTTP helpers
@@ -96,7 +100,7 @@ def fetch_html(url: str, session: requests.Session) -> str:
             return r.text
         except Exception as e:
             last_err = e
-            time.sleep(1.5 * attempt)
+            time.sleep(10.0 * attempt)
     raise RuntimeError(f"Failed {url}: {last_err}")
 
 
@@ -218,6 +222,24 @@ def _find_table(soups, ids):
 
 
 def _parse_player_cell(tr):
+    """
+    Extract (name, href, player_id) from a table row.
+    Sports-Reference moved player names/links from <th> into
+    <td data-stat="name_display"> in their updated table format,
+    so we check that first before falling back to <th>.
+    """
+    # New SR format: player name + link in <td data-stat="name_display">
+    for stat in ("name_display", "player"):
+        td = tr.find("td", attrs={"data-stat": stat})
+        if td:
+            name = td.get_text(strip=True) or None
+            a = td.find("a", href=True)
+            href = a["href"].strip() if a else None
+            pid  = href.split("/")[-1].replace(".html", "") if href else None
+            if name:
+                return name, href, pid
+
+    # Legacy fallback: name in <th>
     th = tr.find("th")
     if not th:
         return None, None, None
@@ -248,6 +270,21 @@ def _table_to_df(table) -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
+def _coalesce_xy(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    After an outer merge, pandas adds _x/_y suffixes when both sides share a
+    column that wasn't the join key. Coalesce each pair back to a single column.
+    """
+    x_cols = [c for c in df.columns if c.endswith("_x")]
+    for col_x in x_cols:
+        base = col_x[:-2]
+        col_y = base + "_y"
+        if col_y in df.columns:
+            df[base] = df[col_x].combine_first(df[col_y])
+            df = df.drop(columns=[col_x, col_y])
+    return df
+
+
 def scrape_team_players(team_url, session) -> pd.DataFrame:
     soups    = soups_with_comments(fetch_html(team_url, session))
     per_tbl, per_id = _find_table(soups, PER_GAME_IDS)
@@ -271,6 +308,7 @@ def scrape_team_players(team_url, session) -> pd.DataFrame:
     adv_df = adv_df.rename(columns={c: f"adv_{c}" for c in adv_df.columns if c not in id_cols})
 
     merged = pd.merge(per_df, adv_df, on=join_key, how="outer")
+    merged = _coalesce_xy(merged)
     merged["per_game_table_id"] = per_id
     merged["advanced_table_id"] = adv_id
     return merged
@@ -336,16 +374,118 @@ def scrape_players_for_year(teams_df: pd.DataFrame) -> pd.DataFrame:
 # Main
 # ---------------------------------------------------------------------------
 
+def _scrape_first_college_season(player_href: str, session: requests.Session):
+    """Return the first college season year from a player's sports-reference page."""
+    url = BASE + player_href
+    try:
+        html = fetch_html(url, session)
+    except Exception:
+        return None
+    soup = BeautifulSoup(html, "html.parser")
+    table = soup.find("table", id=re.compile(r"players_per_game|per_game"))
+    if table is None:
+        return None
+    years = []
+    for cell in table.find_all(["td", "th"], attrs={"data-stat": "year_id"}):
+        text = cell.get_text(strip=True)
+        m = re.match(r"(\d{4})-(\d{2})", text)
+        if m:
+            years.append(int(text[:2]) * 100 + int(m.group(2)))
+    return min(years) if years else None
+
+
+def build_first_seasons_cache(force: bool = False) -> None:
+    """
+    Reads all raw player CSVs, finds draft-year players who only appear in
+    recent data (likely transfers from unscraped conferences), fetches their
+    player pages, and saves player_first_seasons.csv.
+
+    Skipped on subsequent runs unless --force is passed, so 04_build_features
+    can just do a CSV lookup with no HTTP requests.
+    """
+    if FIRST_SEASONS_CACHE.exists() and not force:
+        print(f"  [SKIP] {FIRST_SEASONS_CACHE.name} exists — pass --force to refresh")
+        return
+
+    # Load all raw CSVs and find each player's earliest known season
+    frames = []
+    for year in YEARS:
+        p = OUT_DIR / f"ncaaw_players_raw_{year}.csv"
+        if p.exists():
+            df = pd.read_csv(p, usecols=lambda c: c in
+                             {"player_id", "player", "player_href", "season_year"},
+                             low_memory=False)
+            frames.append(df)
+    if not frames:
+        print("  [WARN] No raw player CSVs found — skipping first-season cache")
+        return
+
+    all_df = pd.concat(frames, ignore_index=True)
+    all_df["season_year"] = pd.to_numeric(all_df["season_year"], errors="coerce")
+
+    # One row per player: earliest season seen in our scrape + their href
+    summary = (
+        all_df.sort_values("season_year")
+              .drop_duplicates(subset=["player_id"], keep="first")
+              [["player_id", "player", "player_href", "season_year"]]
+              .rename(columns={"season_year": "first_season_scraped"})
+    )
+
+    # Only check players who first appear in recent years (likely transfers)
+    # and whose most recent season is the draft year
+    most_recent = all_df.groupby("player_id")["season_year"].max().reset_index()
+    most_recent.columns = ["player_id", "most_recent_year"]
+    summary = summary.merge(most_recent, on="player_id")
+
+    candidates = summary[
+        (summary["most_recent_year"] == DRAFT_YEAR) &
+        (summary["first_season_scraped"] >= DRAFT_YEAR - 1)
+    ].copy()
+
+    print(f"  Fetching player pages for {len(candidates)} possible transfer players...")
+    results = []
+    with requests.Session() as session:
+        session.headers.update(HEADERS)
+        for _, row in candidates.iterrows():
+            href = str(row.get("player_href", "") or "")
+            if not href.startswith("/cbb/players/"):
+                continue
+            time.sleep(random.uniform(3.0, 5.0))
+            true_first = _scrape_first_college_season(href, session)
+            scraped_first = int(row["first_season_scraped"])
+            if true_first and true_first < scraped_first:
+                print(f"    {row['player']}: {scraped_first} → {true_first}")
+                results.append({"player_id": row["player_id"], "true_first_season": true_first})
+            else:
+                results.append({"player_id": row["player_id"], "true_first_season": scraped_first})
+
+    if results:
+        pd.DataFrame(results).to_csv(FIRST_SEASONS_CACHE, index=False)
+        print(f"  Saved {len(results)} entries → {FIRST_SEASONS_CACHE.name}")
+    else:
+        print("  No transfer corrections needed.")
+
+
 def main():
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--force", action="store_true",
+                        help="Re-scrape and overwrite existing raw CSVs")
+    parser.add_argument("--years", type=int, nargs="+",
+                        help="Only scrape these years (e.g. --years 2025 2026)")
+    args = parser.parse_args()
+
     OUT_DIR.mkdir(parents=True, exist_ok=True)
 
-    for year in YEARS:
+    years_to_run = args.years if args.years else YEARS
+
+    for year in years_to_run:
         teams_out   = OUT_DIR / f"ncaaw_teams_{year}.csv"
         players_out = OUT_DIR / f"ncaaw_players_raw_{year}.csv"
 
         # ---- Team standings ----
-        if teams_out.exists():
-            print(f"\n[SKIP] {teams_out.name} already exists")
+        if teams_out.exists() and not args.force:
+            print(f"\n[SKIP] {teams_out.name} already exists (use --force to re-scrape)")
             teams_df = pd.read_csv(teams_out)
         else:
             print(f"\n=== Scraping teams for {year} ===")
@@ -357,14 +497,17 @@ def main():
             print(f"  -> {len(teams_df)} teams saved to {teams_out.name}")
 
         # ---- Player stats ----
-        if players_out.exists():
-            print(f"[SKIP] {players_out.name} already exists")
+        if players_out.exists() and not args.force:
+            print(f"[SKIP] {players_out.name} already exists (use --force to re-scrape)")
             continue
 
         print(f"  Scraping players for {year} ({len(teams_df)} teams)...")
         players_df = scrape_players_for_year(teams_df)
         players_df.to_csv(players_out, index=False)
         print(f"  -> {len(players_df)} player rows saved to {players_out.name}")
+
+    print("\n=== Building transfer first-season cache ===")
+    build_first_seasons_cache(force=args.force)
 
 
 if __name__ == "__main__":

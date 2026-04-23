@@ -133,7 +133,7 @@ export default function PlayerTable({ players, needs, drafted, onDraft, showDraf
                     <td className="px-4 py-3">
                       <div className="font-semibold text-white">{player.name}</div>
                       <div className="text-xs text-gray-400">
-                        {player.pos} · {player.team} · {player.conference?.replace(' Conference', '')}
+                        {player.pos} · {player.team}
                       </div>
                     </td>
                     <td className="px-4 py-3 hidden md:table-cell">
@@ -229,10 +229,10 @@ function PlayerDetail({ player }) {
     { label: 'AST', value: fmt(player.ast_per_g) },
     { label: 'STL', value: fmt(player.stl_per_g) },
     { label: 'BLK', value: fmt(player.blk_per_g) },
-    { label: 'TOV', value: fmt(player.tov_per_g) },
-    { label: 'FG%', value: pct(player.fg_pct) },
-    { label: '3P%', value: pct(player.fg3_pct) },
-    { label: 'FT%', value: pct(player.ft_pct) },
+    { label: 'TOV', value: fmt(player.tov_per_g_latest ?? player.tov_per_g) },
+    { label: 'FG%', value: pct(player.fg_pct_latest ?? player.fg_pct) },
+    { label: '3P%', value: pct(player.fg3_pct_latest ?? player.fg3_pct) },
+    { label: 'FT%', value: pct(player.ft_pct_latest ?? player.ft_pct) },
     { label: 'TS%', value: pct(player.ts_pct) },
     { label: 'PER', value: fmt(player.per) },
     { label: 'BPM', value: fmt(player.bpm) },
@@ -249,7 +249,7 @@ function PlayerDetail({ player }) {
         <div>
           <span className="font-bold text-white">{player.name}</span>
           <span className="text-gray-400 text-sm ml-2">
-            {player.pos} · {player.team} · {player.conference}
+            {player.pos} · {player.team}
           </span>
         </div>
       </div>

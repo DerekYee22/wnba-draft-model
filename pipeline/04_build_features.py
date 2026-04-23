@@ -24,7 +24,8 @@ from pathlib import Path
 ROOT         = Path(__file__).parent.parent
 RAW_DIR      = ROOT / "data" / "raw"
 PROC_DIR     = ROOT / "data" / "processed"
-YEARS        = [2022, 2023, 2024, 2025]
+YEARS        = [2022, 2023, 2024, 2025, 2026]
+DRAFT_YEAR   = 2026
 EXISTING_CSV = ROOT / "ncaaw_players_with_archetypes_ranked.csv"
 
 # Exponential recency decay: weight(y) = exp(LAMBDA * (y - BASE_YEAR))
@@ -52,7 +53,12 @@ RATE_STATS = [
 ]
 
 # These context columns are taken from the most recent season row
-CONTEXT_COLS = ["conference", "team", "team_id", "opp_win_pct"]
+CONTEXT_COLS = ["conference", "team", "team_id", "player_href"]
+
+# opp_win_pct is averaged across all available seasons (weighted by recency × minutes)
+# rather than taken from only the most recent season, so players whose latest season
+# lacks opp strength data (e.g. 2026 not yet scraped) still get a meaningful value.
+OPP_WIN_PCT_COL = "opp_win_pct"
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -240,6 +246,7 @@ def aggregate_multi_year(long_df: pd.DataFrame) -> pd.DataFrame:
             "player":           player_name,
             "pos":              most_recent.get("pos", ""),
             "n_seasons":        len(grp),
+            "first_season":     int(grp["season_year"].min()),
             "most_recent_year": int(grp["season_year"].max()),
             "total_mp":         total_mp,
             "mpg_latest":       float(most_recent.get("_mpg") or np.nan),
@@ -282,6 +289,21 @@ def aggregate_multi_year(long_df: pd.DataFrame) -> pd.DataFrame:
                 slope = 0.0
             row[f"trend_{trend_stat}"] = slope
 
+        # opp_win_pct: weighted average across seasons that have data.
+        # Using all seasons (not just the most recent) prevents a missing
+        # current-year lookup from zeroing out a player's SOS signal.
+        if OPP_WIN_PCT_COL in grp.columns:
+            opp_vals = safe_float(grp[OPP_WIN_PCT_COL]).values
+            opp_mask = ~np.isnan(opp_vals)
+            if opp_mask.sum() > 0 and weights[opp_mask].sum() > 0:
+                row[OPP_WIN_PCT_COL] = float(
+                    np.average(opp_vals[opp_mask], weights=weights[opp_mask])
+                )
+            else:
+                row[OPP_WIN_PCT_COL] = np.nan
+        else:
+            row[OPP_WIN_PCT_COL] = np.nan
+
         # Context columns from most recent season
         for col in CONTEXT_COLS:
             row[col] = most_recent.get(col, np.nan)
@@ -299,14 +321,20 @@ def aggregate_multi_year(long_df: pd.DataFrame) -> pd.DataFrame:
 def merge_measurables(df: pd.DataFrame) -> pd.DataFrame:
     meas_path = RAW_DIR / "measurables_raw.csv"
     if not meas_path.exists():
-        print("  [INFO] No measurables file found; height/weight will be NaN")
+        print("  [INFO] No measurables file found; height/weight/birth_year will be NaN")
         df["height_in"]  = np.nan
         df["weight_lbs"] = np.nan
+        df["birth_year"] = np.nan
         return df
 
-    meas = pd.read_csv(meas_path)[["player_id", "height_in", "weight_lbs"]]
-    meas = meas.drop_duplicates("player_id")
+    keep_cols = ["player_id", "height_in", "weight_lbs"]
+    meas_df = pd.read_csv(meas_path)
+    if "birth_year" in meas_df.columns:
+        keep_cols.append("birth_year")
+    meas = meas_df[keep_cols].drop_duplicates("player_id")
     df   = df.merge(meas, on="player_id", how="left")
+    if "birth_year" not in df.columns:
+        df["birth_year"] = np.nan
     filled = df[["height_in", "weight_lbs"]].notna().sum()
     print(f"  Measurables merged: height={filled['height_in']}, weight={filled['weight_lbs']} / {len(df)}")
     return df
@@ -362,6 +390,37 @@ def add_derived_features(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 # ---------------------------------------------------------------------------
+# Fix first_season for transfers whose pre-transfer school wasn't scraped
+# ---------------------------------------------------------------------------
+
+def fix_transfer_first_seasons(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Apply true first_season values from the cache written by 01_scrape_multi_year.py.
+    No HTTP requests — just a CSV lookup.
+    """
+    cache_path = RAW_DIR / "player_first_seasons.csv"
+    if not cache_path.exists():
+        print("  [INFO] player_first_seasons.csv not found — run 01_scrape_multi_year.py to build it")
+        return df
+
+    cache = pd.read_csv(cache_path)
+    lookup = dict(zip(cache["player_id"].astype(str), cache["true_first_season"].astype(int)))
+
+    updated = 0
+    for idx, row in df.iterrows():
+        pid = str(row.get("player_id", ""))
+        if pid in lookup:
+            true_first = lookup[pid]
+            if true_first < df.at[idx, "first_season"]:
+                print(f"    {row['player']}: first_season {df.at[idx, 'first_season']} → {true_first}")
+                df.at[idx, "first_season"] = true_first
+                updated += 1
+
+    print(f"  Updated first_season for {updated} transfer players")
+    return df
+
+
+# ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
 
@@ -371,12 +430,32 @@ def main():
     print("Loading raw player data...")
     long_df = load_raw_years(YEARS)
 
-    # Merge opponent strength onto each player-season row
+    # Merge opponent strength onto each player-season row.
+    # When a team's opp_win_pct is missing for the current season (e.g. 2026 data
+    # not yet scraped), fall back to the most recent prior year's value for that
+    # team so freshmen and single-year players still get a meaningful SOS signal.
     opp_path = PROC_DIR / "team_opp_strength.csv"
     if opp_path.exists():
         print("Merging opponent strength...")
         opp_df = pd.read_csv(opp_path)[["season_year", "team_id", "opp_win_pct"]]
         long_df = long_df.merge(opp_df, on=["season_year", "team_id"], how="left")
+
+        # Fallback: for rows still missing opp_win_pct, use the most recent
+        # available value for that team from any earlier year.
+        if long_df["opp_win_pct"].isna().any():
+            latest_opp = (
+                opp_df.sort_values("season_year")
+                      .groupby("team_id")["opp_win_pct"]
+                      .last()
+                      .rename("opp_win_pct_fallback")
+            )
+            long_df = long_df.join(latest_opp, on="team_id")
+            missing_mask = long_df["opp_win_pct"].isna()
+            long_df.loc[missing_mask, "opp_win_pct"] = long_df.loc[missing_mask, "opp_win_pct_fallback"]
+            long_df = long_df.drop(columns=["opp_win_pct_fallback"])
+            fallback_filled = missing_mask.sum() - long_df["opp_win_pct"].isna().sum()
+            print(f"  opp_win_pct fallback applied to {fallback_filled} rows (prior-year team value)")
+
         filled = long_df["opp_win_pct"].notna().sum()
         print(f"  opp_win_pct filled for {filled}/{len(long_df)} player-season rows")
     else:
@@ -395,6 +474,10 @@ def main():
     # Aggregate to one row per player
     print("Aggregating multi-year stats...")
     feat_df = aggregate_multi_year(long_df)
+
+    # Fix first_season for transfers from unscraped conferences
+    print("Resolving transfer first seasons...")
+    feat_df = fix_transfer_first_seasons(feat_df)
 
     # Merge measurables
     print("Merging measurables...")

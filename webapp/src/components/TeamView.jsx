@@ -2,7 +2,7 @@ import { ARCHETYPE_META } from '../data/teams'
 import NeedsDisplay from './NeedsDisplay'
 import PlayerTable from './PlayerTable'
 
-export default function TeamView({ team, needs, players, playersLoaded, drafted, onDraft, onUndraft, onBack }) {
+export default function TeamView({ team, needs, players, playersLoaded, drafted, onDraft, onUndraft, onBack, backLabel = '← All Teams' }) {
   // Top need archetype
   const topArchetype = needs
     ? Object.entries(needs.archetypeNeeds ?? {}).sort((a, b) => b[1] - a[1])[0]?.[0]
@@ -16,7 +16,7 @@ export default function TeamView({ team, needs, players, playersLoaded, drafted,
         onClick={onBack}
         className="text-gray-500 hover:text-gray-300 text-sm mb-4 flex items-center gap-1 transition-colors"
       >
-        ← All Teams
+        {backLabel}
       </button>
 
       {/* Team header */}

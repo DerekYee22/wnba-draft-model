@@ -104,40 +104,72 @@ export const TEAMS = [
     secondary: '#E03A3E',
     textColor: '#FFFFFF',
   },
+  {
+    id: 'toronto-tempo',
+    name: 'Toronto Tempo',
+    abbrev: 'TOR',
+    primary: '#612C51',
+    secondary: '#B8CCEA',
+    textColor: '#FFFFFF',
+  },
+  {
+    id: 'portland-fire',
+    name: 'Portland Fire',
+    abbrev: 'POR',
+    primary: '#C8102E',
+    secondary: '#E93CAC',
+    textColor: '#FFFFFF',
+  },
 ]
 
 export const ARCHETYPE_META = {
-  'Primary Creator': {
+  'Floor General': {
     color: '#F59E0B',
     bg: 'bg-amber-500/20',
     border: 'border-amber-500/40',
     text: 'text-amber-400',
-    description: 'High-volume scorer and shot creator',
+    description: 'Primary ball handler and distributor',
     icon: '⚡',
   },
-  'Interior Defender': {
-    color: '#6366F1',
-    bg: 'bg-indigo-500/20',
-    border: 'border-indigo-500/40',
-    text: 'text-indigo-400',
-    description: 'Rim protector, elite rebounder, interior anchor',
-    icon: '🛡',
+  'Post Scorer': {
+    color: '#F97316',
+    bg: 'bg-orange-500/20',
+    border: 'border-orange-500/40',
+    text: 'text-orange-400',
+    description: 'High-usage interior scorer who draws fouls and dominates the paint',
+    icon: '🔥',
   },
-  'Balanced Contributor': {
-    color: '#22C55E',
-    bg: 'bg-green-500/20',
-    border: 'border-green-500/40',
-    text: 'text-green-400',
-    description: 'Versatile two-way contributor across all facets',
-    icon: '⚖️',
+  'Combo Guard': {
+    color: '#FBBF24',
+    bg: 'bg-yellow-500/20',
+    border: 'border-yellow-500/40',
+    text: 'text-yellow-400',
+    description: 'Guard-wing hybrid with multi-dimensional game',
+    icon: '✦',
   },
-  'Support Player': {
+  '3-and-D Wing': {
     color: '#38BDF8',
     bg: 'bg-sky-500/20',
     border: 'border-sky-500/40',
     text: 'text-sky-400',
-    description: 'Role player, 3-and-D, glue piece',
-    icon: '🔧',
+    description: 'Perimeter marksman with defensive versatility',
+    icon: '🎯',
+  },
+  'Stretch Big': {
+    color: '#A855F7',
+    bg: 'bg-purple-500/20',
+    border: 'border-purple-500/40',
+    text: 'text-purple-400',
+    description: 'Floor-spacing big with perimeter shooting range',
+    icon: '↗',
+  },
+  'Interior Big': {
+    color: '#6366F1',
+    bg: 'bg-indigo-500/20',
+    border: 'border-indigo-500/40',
+    text: 'text-indigo-400',
+    description: 'Rim protector and interior anchor',
+    icon: '🛡',
   },
 }
 

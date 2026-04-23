@@ -1,234 +1,242 @@
 {
   "Atlanta Dream": {
     "archetypeNeeds": {
-      "Primary Creator": 10.0,
-      "Balanced Contributor": 8.5,
-      "Interior Defender": 5.5,
-      "Support Player": 1.0
+      "Floor General": 1.0,
+      "Post Scorer": 3.5,
+      "Combo Guard": 1.0,
+      "3-and-D Wing": 1.0,
+      "Stretch Big": 3.4,
+      "Interior Big": 6.9
     },
     "topStatNeeds": [
-      "Shooting Efficiency",
-      "True Shooting",
-      "2-Pt Creation",
-      "Rim Protection"
+      "Rim Protection",
+      "Inside Scoring"
     ],
-    "rawDeficits": {
-      "FG.": 0.2146,
-      "TS.": 0.1536,
-      "percent_2FGM": 0.1435,
-      "opp_percent_2FGM": 0.1435,
-      "PTS_per_100": 0.137
-    }
+    "notes": "Major scoring need \u2014 lacks efficient interior presence and shooting."
   },
   "Chicago Sky": {
     "archetypeNeeds": {
-      "Primary Creator": 10.0,
-      "Balanced Contributor": 9.1,
-      "Interior Defender": 6.4,
-      "Support Player": 1.0
+      "Floor General": 6.0,
+      "Post Scorer": 7.5,
+      "Combo Guard": 7.0,
+      "3-and-D Wing": 8.1,
+      "Stretch Big": 2.5,
+      "Interior Big": 4.0
     },
     "topStatNeeds": [
+      "Scoring",
       "True Shooting",
-      "2-Pt Creation",
-      "Rim Protection",
-      "Scoring"
+      "3-Pt Defense",
+      "Defensive Efficiency"
     ],
-    "rawDeficits": {
-      "TS.": 0.1799,
-      "percent_2FGM": 0.1401,
-      "opp_percent_2FGM": 0.1401,
-      "PTS_per_100": 0.1339,
-      "FG.": 0.1144
-    }
+    "notes": "Rebuilding \u2014 needs scoring and inside presence at every position."
   },
   "Connecticut Sun": {
     "archetypeNeeds": {
-      "Primary Creator": 3.9,
-      "Balanced Contributor": 5.9,
-      "Interior Defender": 10.0,
-      "Support Player": 1.4
+      "Floor General": 8.4,
+      "Post Scorer": 9.2,
+      "Combo Guard": 8.7,
+      "3-and-D Wing": 8.7,
+      "Stretch Big": 5.2,
+      "Interior Big": 8.6
     },
     "topStatNeeds": [
+      "Scoring",
       "True Shooting",
-      "Defensive Rebounding",
-      "2-Pt Creation",
-      "Rim Protection"
+      "Perimeter Defense",
+      "Playmaking"
     ],
-    "rawDeficits": {
-      "TS.": 0.0135,
-      "DRB_per_100": 0.0111,
-      "percent_2FGM": 0.0095,
-      "opp_percent_2FGM": 0.0095
-    }
+    "notes": "Strong core; minor needs for interior defense and inside scoring."
   },
   "Dallas Wings": {
     "archetypeNeeds": {
-      "Primary Creator": 1.0,
-      "Balanced Contributor": 1.0,
-      "Interior Defender": 10.0,
-      "Support Player": 4.8
+      "Floor General": 5.1,
+      "Post Scorer": 4.8,
+      "Combo Guard": 4.9,
+      "3-and-D Wing": 10.0,
+      "Stretch Big": 3.1,
+      "Interior Big": 5.4
     },
     "topStatNeeds": [
-      "Perimeter Defense",
-      "Interior Defense",
-      "Defensive Rebounding",
+      "3-Pt Defense",
+      "Defensive Efficiency",
+      "True Shooting",
       "Disruption"
     ],
-    "rawDeficits": {
-      "opp_FG%_per_game": 0.2141,
-      "Opp_eFG": 0.1756,
-      "DRB_per_100": 0.1396,
-      "opp_AST_per_100": 0.1131,
-      "opp_3FG%_per_game": 0.1029
-    }
+    "notes": "Defense-first rebuild \u2014 needs rim protection and perimeter stoppers."
+  },
+  "Golden State Valkyries": {
+    "archetypeNeeds": {
+      "Floor General": 5.6,
+      "Post Scorer": 8.2,
+      "Combo Guard": 5.9,
+      "3-and-D Wing": 5.1,
+      "Stretch Big": 4.0,
+      "Interior Big": 7.7
+    },
+    "topStatNeeds": [
+      "Scoring",
+      "Playmaking",
+      "Rim Protection",
+      "Total Rebounding"
+    ],
+    "notes": "Expansion team \u2014 building from scratch, all archetypes in demand."
   },
   "Indiana Fever": {
     "archetypeNeeds": {
-      "Primary Creator": 1.0,
-      "Balanced Contributor": 4.6,
-      "Interior Defender": 6.4,
-      "Support Player": 10.0
+      "Floor General": 1.0,
+      "Post Scorer": 1.3,
+      "Combo Guard": 1.0,
+      "3-and-D Wing": 2.8,
+      "Stretch Big": 4.7,
+      "Interior Big": 7.4
     },
     "topStatNeeds": [
-      "3-Pt Defense",
-      "Interior Defense",
-      "Disruption",
-      "Playmaking"
+      "Rim Protection",
+      "Defensive Rebounding",
+      "Perimeter Defense",
+      "Total Rebounding"
     ],
-    "rawDeficits": {
-      "opp_3FG%_per_game": 0.088,
-      "Opp_eFG": 0.0531,
-      "opp_AST_per_100": 0.0353,
-      "AST_per_100": 0.0229,
-      "opp_FG%_per_game": 0.0182
-    }
+    "notes": "Have Clark for playmaking \u2014 need defenders and frontcourt support."
   },
   "Las Vegas Aces": {
     "archetypeNeeds": {
-      "Primary Creator": 1.0,
-      "Balanced Contributor": 8.9,
-      "Interior Defender": 5.6,
-      "Support Player": 10.0
+      "Floor General": 2.9,
+      "Post Scorer": 3.2,
+      "Combo Guard": 1.7,
+      "3-and-D Wing": 1.2,
+      "Stretch Big": 3.4,
+      "Interior Big": 6.6
     },
     "topStatNeeds": [
-      "3-Pt Defense",
-      "Total Rebounding",
-      "Playmaking"
+      "Rim Protection",
+      "Inside Scoring",
+      "Playmaking",
+      "Total Rebounding"
     ],
-    "rawDeficits": {
-      "opp_3FG%_per_game": 0.0471,
-      "TRB_per_100": 0.029,
-      "AST_per_100": 0.0183
-    }
+    "notes": "Championship core intact \u2014 looking for perimeter defenders and depth."
   },
   "Los Angeles Sparks": {
     "archetypeNeeds": {
-      "Primary Creator": 9.6,
-      "Balanced Contributor": 7.0,
-      "Interior Defender": 10.0,
-      "Support Player": 4.0
+      "Floor General": 3.4,
+      "Post Scorer": 1.8,
+      "Combo Guard": 1.7,
+      "3-and-D Wing": 8.1,
+      "Stretch Big": 4.0,
+      "Interior Big": 7.0
     },
     "topStatNeeds": [
-      "Perimeter Defense",
-      "Scoring",
-      "Interior Defense",
-      "Shooting Efficiency"
+      "Defensive Efficiency",
+      "3-Pt Defense",
+      "Disruption",
+      "Perimeter Defense"
     ],
-    "rawDeficits": {
-      "opp_FG%_per_game": 0.1507,
-      "PTS_per_100": 0.1492,
-      "Opp_eFG": 0.1165,
-      "FG.": 0.1073,
-      "opp_3FG%_per_game": 0.0843
-    }
+    "notes": "Rebuilding; needs a franchise scorer and defensive anchors."
   },
   "Minnesota Lynx": {
     "archetypeNeeds": {
-      "Primary Creator": 1.0,
-      "Balanced Contributor": 3.1,
-      "Interior Defender": 10.0,
-      "Support Player": 1.0
+      "Floor General": 1.0,
+      "Post Scorer": 5.4,
+      "Combo Guard": 1.0,
+      "3-and-D Wing": 1.0,
+      "Stretch Big": 1.3,
+      "Interior Big": 4.0
     },
     "topStatNeeds": [
-      "2-Pt Creation",
+      "Inside Scoring",
       "Rim Protection"
     ],
-    "rawDeficits": {
-      "percent_2FGM": 0.006,
-      "opp_percent_2FGM": 0.006
-    }
+    "notes": "Experienced core \u2014 minimal needs, looking for inside presence."
   },
   "New York Liberty": {
     "archetypeNeeds": {
-      "Primary Creator": 1.0,
-      "Balanced Contributor": 1.0,
-      "Interior Defender": 1.0,
-      "Support Player": 1.0
+      "Floor General": 1.0,
+      "Post Scorer": 5.9,
+      "Combo Guard": 1.0,
+      "3-and-D Wing": 1.0,
+      "Stretch Big": 1.5,
+      "Interior Big": 4.4
     },
-    "topStatNeeds": [],
-    "rawDeficits": {}
+    "topStatNeeds": [
+      "Inside Scoring",
+      "Total Rebounding",
+      "Rim Protection"
+    ],
+    "notes": "Championship contender \u2014 few gaps, targeting high-value role players."
   },
   "Phoenix Mercury": {
     "archetypeNeeds": {
-      "Primary Creator": 1.0,
-      "Balanced Contributor": 3.6,
-      "Interior Defender": 10.0,
-      "Support Player": 8.5
+      "Floor General": 1.6,
+      "Post Scorer": 6.0,
+      "Combo Guard": 2.2,
+      "3-and-D Wing": 1.0,
+      "Stretch Big": 1.0,
+      "Interior Big": 3.1
     },
     "topStatNeeds": [
-      "Disruption",
-      "Total Rebounding",
-      "Playmaking",
-      "Defensive Rebounding"
+      "Inside Scoring",
+      "Shooting Efficiency",
+      "Rim Protection",
+      "True Shooting"
     ],
-    "rawDeficits": {
-      "opp_AST_per_100": 0.0872,
-      "TRB_per_100": 0.0751,
-      "AST_per_100": 0.0321,
-      "DRB_per_100": 0.0244,
-      "opp_3FG%_per_game": 0.0174
-    }
+    "notes": "Need a disruptive defender, rebounder, and secondary playmaker."
   },
   "Seattle Storm": {
     "archetypeNeeds": {
-      "Primary Creator": 10.0,
-      "Balanced Contributor": 9.9,
-      "Interior Defender": 5.3,
-      "Support Player": 3.5
+      "Floor General": 1.2,
+      "Post Scorer": 2.7,
+      "Combo Guard": 1.5,
+      "3-and-D Wing": 2.1,
+      "Stretch Big": 5.0,
+      "Interior Big": 8.1
     },
     "topStatNeeds": [
-      "True Shooting",
+      "Total Rebounding",
       "Defensive Rebounding",
-      "Shooting Efficiency",
-      "Playmaking"
+      "Rim Protection",
+      "Perimeter Defense"
     ],
-    "rawDeficits": {
-      "TS.": 0.0485,
-      "DRB_per_100": 0.0288,
-      "FG.": 0.0215,
-      "AST_per_100": 0.0092,
-      "TRB_per_100": 0.0044
-    }
+    "notes": "Transitioning \u2014 needs a scoring centerpiece and shooting efficiency."
   },
   "Washington Mystics": {
     "archetypeNeeds": {
-      "Primary Creator": 4.8,
-      "Balanced Contributor": 4.7,
-      "Interior Defender": 10.0,
-      "Support Player": 1.1
+      "Floor General": 5.0,
+      "Post Scorer": 6.7,
+      "Combo Guard": 5.9,
+      "3-and-D Wing": 2.9,
+      "Stretch Big": 2.5,
+      "Interior Big": 3.4
     },
     "topStatNeeds": [
       "Scoring",
-      "Total Rebounding",
-      "Defensive Rebounding",
-      "2-Pt Creation"
+      "True Shooting",
+      "Playmaking",
+      "Total Rebounding"
     ],
-    "rawDeficits": {
-      "PTS_per_100": 0.1155,
-      "TRB_per_100": 0.1089,
-      "DRB_per_100": 0.0908,
-      "percent_2FGM": 0.0438,
-      "opp_percent_2FGM": 0.0438
-    }
+    "notes": "Full rebuild \u2014 elevated needs for scoring, rebounding, and interior presence."
+  },
+  "Toronto Tempo": {
+    "archetypeNeeds": {
+      "Floor General": 7.5,
+      "Post Scorer": 9.0,
+      "Combo Guard": 7.5,
+      "3-and-D Wing": 7.5,
+      "Stretch Big": 6.5,
+      "Interior Big": 9.0
+    },
+    "topStatNeeds": ["Scoring", "Playmaking", "Rim Protection", "Rebounding"],
+    "notes": "Inaugural season \u2014 building from scratch, all archetypes in demand."
+  },
+  "Portland Fire": {
+    "archetypeNeeds": {
+      "Floor General": 7.5,
+      "Post Scorer": 9.0,
+      "Combo Guard": 7.5,
+      "3-and-D Wing": 7.5,
+      "Stretch Big": 6.5,
+      "Interior Big": 9.0
+    },
+    "topStatNeeds": ["Scoring", "Playmaking", "Rim Protection", "Rebounding"],
+    "notes": "Inaugural season \u2014 building from scratch, all archetypes in demand."
   }
 }

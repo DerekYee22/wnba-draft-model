@@ -1,4 +1,15 @@
-export default function Header({ view, selectedTeam, draftedCount, onHome, onBoard }) {
+export default function Header({
+  view,
+  selectedTeam,
+  draftedCount,
+  hasMockDraft,
+  mockCurrentPick,
+  mockTotal,
+  onHome,
+  onBoard,
+  onMock,
+  onStartMock,
+}) {
   return (
     <header className="border-b border-gray-800 bg-[#0D1120] sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 h-14 flex items-center justify-between">
@@ -11,7 +22,7 @@ export default function Header({ view, selectedTeam, draftedCount, onHome, onBoa
           <span className="text-gray-500 text-sm hidden sm:block">· 2025</span>
         </button>
 
-        <nav className="flex items-center gap-2">
+        <nav className="flex items-center gap-1">
           <button
             onClick={onHome}
             className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
@@ -22,6 +33,44 @@ export default function Header({ view, selectedTeam, draftedCount, onHome, onBoa
           >
             Teams
           </button>
+
+          {/* Mock Draft button — shows resume state if in progress */}
+          {hasMockDraft && mockCurrentPick < mockTotal ? (
+            <div className="flex items-center gap-1">
+              <button
+                onClick={onMock}
+                className={`px-3 py-1.5 rounded text-sm font-medium transition-colors flex items-center gap-1.5 ${
+                  view === 'mock'
+                    ? 'bg-gray-700 text-white'
+                    : 'text-gray-400 hover:text-white hover:bg-gray-800'
+                }`}
+              >
+                Mock Draft
+                <span className="bg-[#FF6B2B]/20 text-[#FF6B2B] text-xs font-bold px-1.5 py-0.5 rounded-full border border-[#FF6B2B]/30">
+                  {mockCurrentPick}/{mockTotal}
+                </span>
+              </button>
+              <button
+                onClick={onStartMock}
+                title="Randomize new draft order"
+                className="px-2 py-1.5 rounded text-sm text-gray-600 hover:text-gray-300 hover:bg-gray-800 transition-colors"
+              >
+                ↺
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={onMock}
+              className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
+                view === 'mock'
+                  ? 'bg-gray-700 text-white'
+                  : 'text-gray-400 hover:text-white hover:bg-gray-800'
+              }`}
+            >
+              {hasMockDraft ? 'Mock Draft' : 'Mock Draft'}
+            </button>
+          )}
+
           <button
             onClick={onBoard}
             className={`px-3 py-1.5 rounded text-sm font-medium transition-colors flex items-center gap-1.5 ${

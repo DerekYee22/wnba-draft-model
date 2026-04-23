@@ -9,14 +9,19 @@ Usage:
     python run_pipeline.py --all      # everything including measurables scrape
 
 Steps:
-    [scrape]  01_scrape_multi_year.py    — scrape NCAA stats (slow, skip if data exists)
-    [all]     02_scrape_measurables.py   — scrape height/weight (slow, optional)
-    [scrape]  03_opp_strength.py         — compute opponent strength metrics
-              04_build_features.py       — build feature matrix
-              05_archetype_clusters.py   — cluster players into archetypes
-              06_xgboost_model.py        — train model + score prospects
-              07_fit_scores.py           — compute team fit scores
-              prepare_data.py            — generate webapp/public/players.json
+    [scrape]  01_scrape_multi_year.py        — scrape NCAA stats (slow, skip if data exists)
+    [scrape]  01b_scrape_draft_class_only.py — scrape historical draft picks' college stats
+                                               (fast after first run — skips already-scraped years)
+    [all]     02_scrape_measurables.py       — scrape height/weight (slow, optional)
+    [scrape]  03_opp_strength.py             — compute opponent strength metrics
+              04_build_features.py           — build feature matrix
+    [all]     05_scrape_wnba_archetypes.py   — scrape WNBA player stats + cluster into archetypes
+    [all]     05b_wnba_team_needs.py         — scrape 2025 WNBA team stats → wnba_top5_needs.csv
+              06_archetype_classifier.py     — train college+height → WNBA archetype classifier
+              07_xgboost_model.py            — train readiness model + score prospects
+              08_fit_scores.py               — compute team fit scores
+              generate_team_needs.py         — generate webapp/public/team_needs.json
+              prepare_data.py                — generate webapp/public/players.json
 """
 
 import sys
@@ -30,15 +35,19 @@ ROOT = Path(__file__).parent
 PIPELINE_DIR = ROOT / "pipeline"
 
 STEPS = [
-    # (script_path, description, requires_scrape_flag)
-    (PIPELINE_DIR / "01_scrape_multi_year.py",  "Scraping NCAA player data (slow)",       "scrape"),
-    (PIPELINE_DIR / "02_scrape_measurables.py", "Scraping player measurables (slow)",     "all"),
-    (PIPELINE_DIR / "03_opp_strength.py",        "Computing opponent strength metrics",    "scrape"),
-    (PIPELINE_DIR / "04_build_features.py",      "Building feature matrix",               None),
-    (PIPELINE_DIR / "05_archetype_clusters.py",  "Clustering players into archetypes",    None),
-    (PIPELINE_DIR / "06_xgboost_model.py",       "Training model + scoring prospects",    None),
-    (PIPELINE_DIR / "07_fit_scores.py",          "Computing team fit scores",             None),
-    (ROOT         / "prepare_data.py",            "Generating webapp/public/players.json", None),
+    # (script_path, description, requires_flag)
+    (PIPELINE_DIR / "01_scrape_multi_year.py",        "Scraping NCAA player data (slow)",                        "scrape"),
+    (PIPELINE_DIR / "01b_scrape_draft_class_only.py", "Scraping historical draft picks' college stats (targeted)", "scrape"),
+    (PIPELINE_DIR / "02_scrape_measurables.py",       "Scraping player measurables (slow)",                      "all"),
+    (PIPELINE_DIR / "03_opp_strength.py",             "Computing opponent strength metrics",                     "scrape"),
+    (PIPELINE_DIR / "04_build_features.py",         "Building feature matrix",                      None),
+    (PIPELINE_DIR / "05_scrape_wnba_archetypes.py",  "Scraping WNBA player stats + clustering archetypes", "all"),
+    (PIPELINE_DIR / "05b_wnba_team_needs.py",        "Scraping 2025 WNBA team stats → team needs CSV",    "all"),
+    (PIPELINE_DIR / "06_archetype_classifier.py",    "Training archetype classifier (college+height→WNBA)", None),
+    (PIPELINE_DIR / "07_xgboost_model.py",           "Training readiness model + scoring prospects", None),
+    (PIPELINE_DIR / "08_fit_scores.py",              "Computing team fit scores",                    None),
+    (ROOT         / "generate_team_needs.py",        "Generating webapp/public/team_needs.json",     None),
+    (ROOT         / "prepare_data.py",               "Generating webapp/public/players.json",        None),
 ]
 
 
@@ -70,7 +79,7 @@ def main():
     parser.add_argument("--all", action="store_true",
                         help="Run everything including measurables scrape")
     parser.add_argument("--from-step", type=int, default=1, metavar="N",
-                        help="Start from step N (1=scrape, 4=features, 5=archetypes, 6=model, 7=fit, 8=webapp)")
+                        help="Start from step N (1=scrape, 2=historical, 3=measurables, 4=opp-strength, 5=features, 6=wnba-players, 7=wnba-teams, 8=classifier, 9=model, 10=fit, 11=team-needs-json, 12=webapp)")
     args = parser.parse_args()
 
     if args.all:
